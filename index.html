@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Examen Prolog Avansat</title>
+    <style>
+        :root {
+            --primary-color: #0066cc;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e2e8f0;
+            --success-color: #2e7d32;
+            --error-color: #c62828;
+            --warning-color: #dd6b20;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .quiz-container {
+            max-width: 850px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .timer {
+            background-color: #fff5f5;
+            color: var(--error-color);
+            border: 1px solid #feb2b2;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .question-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .level-badge {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+        }
+        .level-usor { background-color: var(--success-color); }
+        .level-mediu { background-color: var(--warning-color); }
+        .level-dificil { background-color: var(--error-color); }
+
+        .code-block {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            white-space: pre;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .option-label input {
+            margin-top: 3px;
+            margin-right: 12px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #0052a3;
+        }
+
+        .btn:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .feedback.correct {
+            display: block;
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            border: 1px solid #a5d6a7;
+        }
+
+        .feedback.wrong {
+            display: block;
+            background-color: #ffebee;
+            color: var(--error-color);
+            border: 1px solid #ef9a9a;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .score-screen {
+            padding: 20px 10px;
+        }
+
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .review-section {
+            margin-top: 30px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .review-item {
+            background: #fffaf0;
+            border-left: 4px solid var(--error-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .review-item h4 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+
+        .review-answers {
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        .user-ans { color: var(--error-color); font-weight: bold; }
+        .corr-ans { color: var(--success-color); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-game">
+        <div class="header">
+            <h2>Examen Prolog Simulator</h2>
+            <!-- <div class="timer" id="timer-display">Time left 0:45:00</div> -->
+        </div>
+
+        <div class="question-meta">
+            <span id="question-info">Întrebarea 1 din X</span>
+            <span id="level-indicator" class="level-badge level-usor">UȘOR</span>
+        </div>
+        <h3 id="question-text">Se încarcă întrebarea...</h3>
+        
+        <div class="code-block" id="code-display"></div>
+
+        <div class="options-container" id="options-display"></div>
+
+        <div class="feedback" id="feedback-display"></div>
+
+        <div class="nav-buttons">
+            <button class="btn" id="submit-btn" onclick="checkAnswer()">Trimite Răspuns</button>
+            <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Următoarea Întrebare</button>
+        </div>
+    </div>
+
+    <div id="score-screen" class="score-screen" style="display: none;">
+        <h2 style="text-align: center;">Examen Finalizat!</h2>
+        <div class="score-number" id="final-score">0 / 0</div>
+        <p id="score-message" style="text-align: center; font-size: 1.1em;"></p>
+        
+        <div style="text-align: center; margin-bottom: 25px;">
+            <button class="btn" onclick="resetQuiz()">Încearcă din nou</button>
+        </div>
+
+        <div id="wrong-answers-review" class="review-section">
+            <h3>📋 Revizuire Răspunsuri Greșite</h3>
+            <div id="review-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        // ==================== NIVEL: UȘOR (1-20) ====================
+        {
+            level: "Ușor",
+            text: "Ce va întoarce apelul de mai jos în variabila Rez?",
+            code: "reverse_dl([], L, L).\nreverse_dl([H|T], B, E) :-\n    reverse_dl(T, B, [H|E]).\n\n?- reverse_dl([1, 2, 3], Rez, []).",
+            options: [
+                { text: "Rez = [3, 2, 1].", correct: false },
+                { text: "Rez = [1, 2, 3].", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare de tip Instantiation Error.", correct: false }
+            ],
+            explanation: "Capcană! Deși se numește reverse_dl, adăugarea elementului sub forma [H|E] (la finalul segmentului curent din lista diferență) păstrează ordinea elementelor din lista inițială."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va afișa sau va returna următorul apel?",
+            code: "f([], 0).\nf([_|T], N) :- f(T, N1), N is N1 + 1.\n\n?- f([a, b, c], 3).",
+            options: [
+                { text: "true.", correct: true },
+                { text: "false.", correct: false },
+                { text: "N = 3.", correct: false },
+                { text: "Eroare de sintaxă.", correct: false }
+            ],
+            explanation: "Predicatul calculează lungimea listei. Deoarece am pasat valoarea statică 3 ca al doilea argument, Prolog verifică egalitatea și întoarce adevărat (true)."
+        },
+        {
+            level: "Ușor",
+            text: "Care este comportamentul acestui predicat la backtracking?",
+            code: "membru(X, [X|_]).\nmembru(X, [_|T]) :- membru(X, T).\n\n?- membru(x, [x, y, x]).",
+            options: [
+                { text: "Întoarce true o singură dată și se oprește.", correct: false },
+                { text: "Întoarce true de două ori, succesiv, la cererea de noi soluții.", correct: true },
+                { text: "Întoarce false pentru că elementul se repetă.", correct: false },
+                { text: "Eroare de stivă.", correct: false }
+            ],
+            explanation: "Deoarece elementul 'x' apare de două ori în listă și nu avem un operator de tăiere (!), Prolog va găsi ambele potriviri în timpul backtracking-ului."
+        },
+        {
+            level: "Ușor",
+            text: "Ce face operatorul de unificare în următorul context?",
+            code: "?- [H|T] = [a].",
+            options: [
+                { text: "Eșuează deoarece lista are un singur element.", correct: false },
+                { text: "H = a, T = [].", correct: true },
+                { text: "H = a, T = valoare nedefinită.", correct: false },
+                { text: "Generază o eroare.", correct: false }
+            ],
+            explanation: "O listă cu un singur element [a] poate fi văzută structural ca [a | []]. Prin urmare, capul H unifică cu 'a', iar coada T cu lista goală []."
+        },
+        {
+            level: "Ușor",
+            text: "Ce valoare va avea variabila R în urma unificării?",
+            code: "?- f(X, g(Y)) = f(1, g(2)), R = X+Y.",
+            options: [
+                { text: "R = 3.", correct: false },
+                { text: "R = 1+2.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare: structurile nu pot unifica.", correct: false }
+            ],
+            explanation: "În Prolog, operatorul '+' nu efectuează calcule automat, ci creează o structură infixată. Unificarea leagă X=1 și Y=2, deci R devine literal structura 1+2."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va returna interogarea următoare?",
+            code: "p(1) :- !.\np(2).\n\n?- p(X).",
+            options: [
+                { text: "X = 1 ; X = 2.", correct: false },
+                { text: "X = 1.", correct: true },
+                { text: "X = 2.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Tăierea (!) din prima clauză blochează instantaneu backtracking-ul către celelalte clauze ale lui p/1, prin urmare a doua clauză p(2) nu va mai fi evaluată niciodată."
+        },
+        {
+            level: "Ușor",
+            text: "Care este rezultatul acestei operații matematice evaluate cu 'is'?",
+            code: "?- X is 5 / 2.",
+            options: [
+                { text: "X = 2.", correct: false },
+                { text: "X = 2.5.", correct: true },
+                { text: "X = 5/2.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Operatorul '/' în Prolog realizează împărțirea cu virgulă mobilă (floating-point division), spre deosebire de div/2 care realizează împărțirea întreagă."
+        },
+        {
+            level: "Ușor",
+            text: "Ce se întâmplă în urma rulării codului următor?",
+            code: "test(X) :- var(X), X = 10.",
+            options: [
+                { text: "Dacă X este neinstanțiată, apelul reușește și X devine 10.", correct: true },
+                { text: "Dacă X este instanțiată cu 10, apelul reușește.", correct: false },
+                { text: "Apelul eșuează indiferent de starea lui X.", correct: false },
+                { text: "Generază o eroare de execuție.", correct: false }
+            ],
+            explanation: "Predicatul predefinit var(X) testează dacă X este o variabilă liberă (neinstanțiată). Dacă este adevărat, X unifică ulterior cu 10."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va returna acest apel pe o listă vidă?",
+            code: "aduna([], 1).\aduna([H|T], R) :- aduna(T, R1), R is R1 + H.\n\n?- aduna([], X).",
+            options: [
+                { text: "X = 0.", correct: false },
+                { text: "X = 1.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare.", correct: false }
+            ],
+            explanation: "Cazul de bază specifică explicit valoarea 1 pentru lista vidă. Apelul se potrivește direct pe prima clauză."
+        },
+        {
+            level: "Ușor",
+            text: "Cum unifică structurile imbricate din exemplul următor?",
+            code: "?- a(b, c(d)) = a(X, c(Y)).",
+            options: [
+                { text: "X = b, Y = d.", correct: true },
+                { text: "false.", correct: false },
+                { text: "X = b, Y = c(d).", correct: false },
+                { text: "Unificarea eșuează din cauza functorului c.", correct: false }
+            ],
+            explanation: "Functorii poziționali se potrivesc perfect: poziția 1 oferă X = b, poziția doi potrivește structura c(d) cu c(Y), rezultând Y = d."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va returna expresia aritmetică de evaluare a egalității structural-valorice?",
+            code: "?- 2 + 2 =:= 3 + 1.",
+            options: [
+                { text: "true.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare de sintaxă.", correct: false },
+                { text: "4 =:= 4.", correct: false }
+            ],
+            explanation: "Operatorul =:= evaluează numeric ambele expresii din stânga și din dreapta înainte de a le compara. Întrucât 4 este egal cu 4, rezultatul este true."
+        },
+        {
+            level: "Ușor",
+            text: "Care este rezultatul unificării dintre două liste cu variabile anonime?",
+            code: "?- [_, X, _] = [1, 2, 3].",
+            options: [
+                { text: "X = 2.", correct: true },
+                { text: "false.", correct: false },
+                { text: "X = [1,2,3].", correct: false },
+                { text: "Eroare.", correct: false }
+            ],
+            explanation: "Variabilele anonime (_) unifică cu orice valoare de pe poziția corespunzătoare fără a reține legătura, lăsând variabila nominală X să preia valoarea 2."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va returna predicatul următor?",
+            code: "semn(X, pozitiv) :- X > 0, !.\nsemn(_, negativ).\n\n?- semn(5, Rez).",
+            options: [
+                { text: "Rez = pozitiv.", correct: true },
+                { text: "Rez = pozitiv ; Rez = negativ.", correct: false },
+                { text: "Rez = negativ.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Deoarece 5 > 0 este adevărat, se execută tăierea (!). Aceasta elimină alternativa oferită de a doua clauză, lăsând doar soluția Rez = pozitiv."
+        },
+        {
+            level: "Ușor",
+            text: "Ce se întâmplă la evaluarea următorului predicat grafic simplu?",
+            code: "nod(a).\nnod(b).\n\n?- findall(N, nod(N), Liste).",
+            options: [
+                { text: "Liste = [a, b].", correct: true },
+                { text: "Liste = a ; Liste = b.", correct: false },
+                { text: "false.", correct: false },
+                { text: "Liste = [].", correct: false }
+            ],
+            explanation: "Predicatul findall/3 colectează toate instanțierile reușite ale variabilei N din scopul specificat și le returnează organizate compact sub forma unei liste unice."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va afișa interogarea de mai jos?",
+            code: "?- (write('Salut'), fail) ; write('Lume').",
+            options: [
+                { text: "SalutLume", correct: true },
+                { text: "Salut", correct: false },
+                { text: "Lume", correct: false },
+                { text: "false", correct: false }
+            ],
+            explanation: "Se execută write('Salut'), apoi fail forțează backtracking pe ramura cealaltă a disjuncției (;), executând write('Lume')."
+        },
+        {
+            level: "Ușor",
+            text: "Care este valoarea lui L după evaluare?",
+            code: "?- atomic(123), atomic(atom), L = ok.",
+            options: [
+                { text: "L = ok.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare de tip.", correct: false },
+                { text: "L = [ok].", correct: false }
+            ],
+            explanation: "Predicatul atomic/1 verifică dacă argumentul este un atom sau un număr. Ambele condiții fiind îndeplinite, conjunctia reușește și L unifică cu ok."
+        },
+        {
+            level: "Ușor",
+            text: "Cum se rezolvă potrivirea listelor în acest caz?",
+            code: "?- [H|T] = [a, b, c].",
+            options: [
+                { text: "H = a, T = [b, c].", correct: true },
+                { text: "H = a, T = b.", correct: false },
+                { text: "H = [a], T = [b, c].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Capul H preia primul element al listei ('a'), în timp ce coada T preia restul elementelor rămase sub forma unei liste structurate, adică [b, c]."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va întoarce predicatul predefinit de negare?",
+            code: "?- \+ (2 =:= 3).",
+            options: [
+                { text: "true.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare.", correct: false },
+                { text: "fail.", correct: false }
+            ],
+            explanation: "Expresia 2 =:= 3 eșuează. Negarea prin eșec (\\+) aplicată unui scop care eșuează transformă rezultatul global în succes (true)."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va genera următorul apel de comparare structurală exactă?",
+            code: "?- X == Y.",
+            options: [
+                { text: "false, deoarece sunt variabile libere distincte.", correct: true },
+                { text: "true, deoarece ambele sunt neinstanțiate.", correct: false },
+                { text: "X = Y.", correct: false },
+                { text: "Eroare de instanțiere.", correct: false }
+            ],
+            explanation: "Operatorul '==' verifică identitatea literală/structurală strictă. Două variabile libere nesubstituite una cu cealaltă nu sunt identice literal, deci întoarce false."
+        },
+        {
+            level: "Ușor",
+            text: "Ce va calcula predicatul recursiv aplicat pe această listă?",
+            code: "g([], 0).\ng([H|T], S) :- g(T, S1), S is S1 + H.\n\n?- g([10, 20], X).",
+            options: [
+                { text: "X = 30.", correct: true },
+                { text: "X = 10.", correct: false },
+                { text: "X = 20.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Predicatul însumează elementele listei prin adunarea capului la scorul calculat pe restul cozii. 10 + 20 + 0 = 30."
+        },
+
+        // ==================== NIVEL: MEDIU (21-40) ====================
+        {
+            level: "Mediu",
+            text: "Completați spațiul liber pentru a asigura funcționarea unui Failure-Driven Loop complet:",
+            code: "print_promovati :-\n    student(Nume, Nota),\n    Nota >= 5,\n    write(Nume), nl,\n    __________.\nprint_promovati.",
+            options: [
+                { text: "!", correct: false },
+                { text: "fail", correct: true },
+                { text: "true", correct: false },
+                { text: "retract", correct: false }
+            ],
+            explanation: "Predicatul 'fail' forțează în mod intenționat backtracking-ul pentru a epuiza toate soluțiile bazei de date în cadrul unui Failure-Driven Loop."
+        },
+        {
+            level: "Mediu",
+            text: "Următorul predicat colectează in-order nodurile interne dintr-un BST. Identificați problema de logică:",
+            code: "collect_internal(t(L,Key,R), BRez, ERez) :-\n    collect_internal(R, Int, ERez),\n    collect_internal(L, BRez, [Key|Int]).",
+            options: [
+                { text: "Este corect scris.", correct: false },
+                { text: "Adăugarea cheii sub forma [Key|Int] trebuie să aibă loc exclusiv în head-ul regulii.", correct: false },
+                { text: "Apelurile recursive pentru subarborele stâng (L) și drept (R) sunt inversate ca execuție, blocând construirea corectă a listei.", correct: true },
+                { text: "Lipsește o clauză de unificare pentru tăiere (!).", correct: false }
+            ],
+            explanation: "În liste diferență, inversarea ordinii fizice a apelurilor recursive strică fluxul unificării variabilelor libere în Prolog, generând eșec structural sau buclă infinită."
+        },
+        {
+            level: "Mediu",
+            text: "Care va fi comportamentul acestui predicat ce folosește o tăiere verde/roșie?",
+            code: "maxim(X, Y, X) :- X >= Y, !.\nmaxim(_, Y, Y).\n\n?- maxim(10, 5, R).",
+            options: [
+                { text: "R = 10.", correct: true },
+                { text: "R = 10 ; R = 5.", correct: false },
+                { text: "R = 5.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Deoarece 10 >= 5 este adevărat, se unifică al treilea argument cu X (10) și se execută tăierea. Alternativa a doua clauză este eliminată, rezultând unic R = 10."
+        },
+        {
+            level: "Mediu",
+            text: "Ce se întâmplă dacă cerem mai multe soluții (backtracking) la această interogare?",
+            code: "p(a).\np(b).\nq(X) :- p(X), !.\n\n?- q(Rez).",
+            options: [
+                { text: "Rez = a.", correct: true },
+                { text: "Rez = a ; Rez = b.", correct: false },
+                { text: "Rez = b.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Tăierea de după p(X) fixează prima alegere făcută pentru p(X), care este 'a'. Backtracking-ul este blocat și nu se mai caută alte valori pentru X."
+        },
+        {
+            level: "Mediu",
+            text: "Alegeți varianta corectă de completare pentru a implementa eliminarea primei apariții a unui element dintr-o listă:",
+            code: "sterge(X, [X|T], T) :- !.\nsterge(X, [H|T], [H|R]) :- \n    __________.\n\n?- sterge(2, [1, 2, 3], L).",
+            options: [
+                { text: "sterge(X, T, R)", correct: true },
+                { text: "sterge(X, [H|T], R)", correct: false },
+                { text: "X = H, sterge(X, T, R)", correct: false },
+                { text: "sterge(X, T, [H|R])", correct: false }
+            ],
+            explanation: "Dacă elementul nu se află în capul listei, se păstrează capul H în lista rezultat și se continuă căutarea/ștergerea recursivă în coada T pentru a produce R."
+        },
+        {
+            level: "Mediu",
+            text: "Care este rezultatul apelului următor bazat pe predicatul de acumulare lungime?",
+            code: "lung_acc([], Acc, Acc).\nlung_acc([_|T], Acc, R) :- Acc1 is Acc + 1, lung_acc(T, Acc1, R).\n\n?- lung_acc([x, y], 10, Rez).",
+            options: [
+                { text: "Rez = 12.", correct: true },
+                { text: "Rez = 2.", correct: false },
+                { text: "Rez = 10.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Predicatul folosește un acumulator pornit de la 10. Lista are 2 elemente, deci valoarea crește succesiv la 11 și apoi la 12, valoare unificată la final cu Rez."
+        },
+        {
+            level: "Mediu",
+            text: "Ce va produce execuția acestui algoritm de concatenare pe liste diferență?",
+            code: "concat_dl(B1-E1, E1-E2, B1-E2).\n\n?- concat_dl([1,2|X]-X, [3,4|Y]-Y, Rez-[]).",
+            options: [
+                { text: "Rez = [1, 2, 3, 4].", correct: true },
+                { text: "Rez = [1, 2].", correct: false },
+                { text: "Rez = [3, 4].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Unificarea leagă E1 cu X și în același timp cu [3,4|Y]. Acest lucru sudează listele instantaneu. Deoarece capătul final E2 este legat la [], Rez devine lista completă închisă."
+        },
+        {
+            level: "Mediu",
+            text: "Ce va returna interogarea următoare bazată pe predicatul setof/3?",
+            code: "varsta(ion, 20).\nvarsta(maria, 20).\nvarsta(ana, 25).\n\n?- setof(V, N^varsta(N, V), Liste).",
+            options: [
+                { text: "Liste = [20, 25].", correct: true },
+                { text: "Liste = [20, 20, 25].", correct: false },
+                { text: "Liste = [25, 20].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Sintaxa N^ indică ignorarea identității numelui. setof/3 colectează valorile, elimină duplicatele și le sortează crescător, rezultând [20, 25]."
+        },
+        {
+            level: "Mediu",
+            text: "Identificați comportamentul apelului dat în contextul utilizării operatorului ne-unificabil '\\=':",
+            code: "?- X = 1, \+ (X \= 2).",
+            options: [
+                { text: "true.", correct: true },
+                { text: "false.", correct: false },
+                { text: "X = 2.", correct: false },
+                { text: "Eroare de rulare.", correct: false }
+            ],
+            explanation: "X devine 1. Expresia (1 \\= 2) este adevărată (deoarece 1 nu e egal cu 2). Negarea acesteia prin \\+ o transformă în eșec, deci întregul scop secundar eșuează? Stai, \\+ (true) este false. Evaluăm: X=1 unifică. Apoi (1 \\= 2) este adevărat. Negarea unui adevăr este fals! Deci returnează false. Corectăm opțiunea: corect este false! Să bifăm varianta stabilă.",
+                // Corectură rapidă de logică internă pentru opțiuni: 
+                // X = 1 aduce X=1. 1 \= 2 este TRUE. \+(TRUE) este FALSE. Deci rezultatul e false. 
+                // Reconfigurăm structura opțiunilor ca să aibă sens:
+                options: [
+                    { text: "false.", correct: true },
+                    { text: "true.", correct: false },
+                    { text: "X = 1.", correct: false },
+                    { text: "Eroare.", correct: false }
+                ],
+                explanation: "X ia valoarea 1. Expresia 1 \\= 2 este structural adevărată. Aplicând operatorul de negare \\+ unui scop adevărat, obținem false."
+        },
+        {
+            level: "Mediu",
+            text: "Ce va întoarce apelul pe acest predicat de inversare ce folosește un acumulator simplu?",
+            code: "rev([], Acc, Acc).\nrev([H|T], Acc, R) :- rev(T, [H|Acc], R).\n\n?- rev([1, 2, 3], [4], X).",
+            options: [
+                { text: "X = [3, 2, 1, 4].", correct: true },
+                { text: "X = [4, 3, 2, 1].", correct: false },
+                { text: "X = [1, 2, 3, 4].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Fiecare element din capul listei este plasat succesiv în fața acumulatorului inițial [4]. Procesul decurge: [1|4] -> [2,1,4] -> [3,2,1,4]."
+        },
+        {
+            level: "Mediu",
+            text: "Următorul cod realizează parcurgerea unui arbore binar. Ce tip de parcurgere este?",
+            code: "parcurge(nil) :- !.\nparcurge(t(L, K, R)) :-\n    write(K), \n    parcurge(L),\n    parcurge(R).",
+            options: [
+                { text: "Pre-order (Rădăcină-Stânga-Dreapta).", correct: true },
+                { text: "In-order (Stânga-Rădăcină-Dreapta).", correct: false },
+                { text: "Post-order (Stânga-Dreapta-Rădăcină).", correct: false },
+                { text: "BFS (Pe niveluri).", correct: false }
+            ],
+            explanation: "Deoarece acțiunea de procesare a cheii nodului curent, write(K), are loc înaintea vizitării subarborilor stâng și drept, parcurgerea este de tip Pre-order."
+        },
+        {
+            level: "Mediu",
+            text: "Ce se întâmplă în urma apelului următor dacă elementul căutat nu există?",
+            code: "caut_bst(t(_, K, _), K) :- !.\ncaut_bst(t(L, K, _), X) :- X < K, caut_bst(L, X).\ncaut_bst(t(_, K, R), X) :- X > K, caut_bst(R, X).\n\n?- caut_bst(nil, 5).",
+            options: [
+                { text: "false (eșuează în mod controlat).", correct: true },
+                { text: "Intră în buclă infinită.", correct: false },
+                { text: "Aruncă o eroare de tipul Uninstantiation Error.", correct: false },
+                { text: "true.", correct: false }
+            ],
+            explanation: "Nu există nicio clauză definită pentru structura 'nil'. Întrucât structura nil nu poate unifica cu functorul t/3 din nicio regulă, apelul eșuează simplu (false)."
+        },
+        {
+            level: "Mediu",
+            text: "Ce va produce următorul apel de unificare avansată?",
+            code: "?- f(X, Y) =.. [f, 1, 2].",
+            options: [
+                { text: "X = 1, Y = 2.", correct: true },
+                { text: "X = f, Y = [1,2].", correct: false },
+                { text: "false.", correct: false },
+                { text: "Eroare de sintaxă.", correct: false }
+            ],
+            explanation: "Operatorul '=..' (univ) descompune o structură într-o listă ce conține functorul urmat de argumente, sau invers. Aici instanțiază X=1 și Y=2."
+        },
+        {
+            level: "Mediu",
+            text: "Ce problemă identificat la acest predicat care dorește să calculeze factorialul unui număr?",
+            code: "fact(0, 1) :- !.\nfact(N, R) :- N1 is N - 1, fact(N1, R1), R is N * R1.",
+            options: [
+                { text: "Funcționează corect pentru orice număr pozitiv, dar va genera Stack Overflow la backtracking sau numere negative.", correct: true },
+                { text: "Este complet greșit și eșuează direct la fact(0,1).", correct: false },
+                { text: "Ris N * R1 trebuie pus la începutul regulii.", correct: false },
+                { text: "N1 is N - 1 generează o eroare de instanțiere permanentă.", correct: false }
+            ],
+            explanation: "Pentru valori pozitive la prima rulare funcționează corect datorită tăierii. Însă dacă se cere o altă soluție prin backtracking la fact(0, R), clauza a doua va prelua 0, va calcula -1 și va intra într-o buclă infinită pe numere negative."
+        },
+        {
+            level: "Mediu",
+            text: "Ce valoare va fi returnată în variabila L?",
+            code: "?- findall(X, (member(X, [1, 2, 3]), X > 4), L).",
+            options: [
+                { text: "L = [].", correct: true },
+                { text: "false.", correct: false },
+                { text: "L = [1,2,3].", correct: false },
+                { text: "Eroare.", correct: false }
+            ],
+            explanation: "Deoarece niciun element din listă nu îndeplinește condiția X > 4, scopul din findall eșuează mereu. findall colectează tot ce s-a găsit, adică o listă vidă []."
+        },
+        {
+            level: "Mediu",
+            text: "Ce face predicatul predefinit 'number/1' în această secvență?",
+            code: "?- X = 5, number(X).",
+            options: [
+                { text: "Reușește și întoarce true.", correct: true },
+                { text: "Eșuează deoarece X este inițial variabilă.", correct: false },
+                { text: "Aruncă o eroare de tip static.", correct: false },
+                { text: "X se transformă în atom.", correct: false }
+            ],
+            explanation: "Mai întâi X este legat prin unificare la valoarea 5. Când se evaluează number(X), X este deja un număr valid, deci predicatul întoarce succes."
+        },
+        {
+            level: "Mediu",
+            text: "Care este rezultatul evaluării următoarei conjuncții cu tăiere?",
+            code: "test :- member(X, [1, 2]), !, X =:= 2.",
+            options: [
+                { text: "false.", correct: true },
+                { text: "true.", correct: false },
+                { text: "X = 2.", correct: false },
+                { text: "Oprește execuția cu eroare.", correct: false }
+            ],
+            explanation: "member preia prima valoare X = 1. Urmează tăierea (!), care blochează posibilitatea de a alege valoarea 2 prin backtracking. Apoi se evaluează 1 =:= 2, care eșuează. Rezultatul final este false."
+        },
+        {
+            level: "Mediu",
+            text: "Ce va returna acest apel bazat pe o funcție matematică definită pe cazuri?",
+            code: "f(X, 1) :- X < 5, !.\nf(X, 2) :- X < 10, !.\nf(_, 3). \n\n?- f(7, R).",
+            options: [
+                { text: "R = 2.", correct: true },
+                { text: "R = 1.", correct: false },
+                { text: "R = 3.", correct: false },
+                { text: "R = 2 ; R = 3.", correct: false }
+            ],
+            explanation: "Prima regulă eșuează deoarece 7 < 5 este fals. Se trece la a doua clauză, 7 < 10 este adevărat, se fixează R = 2 și se execută tăierea, oprind alte evaluări."
+        },
+        {
+            level: "Mediu",
+            text: "Cum se realizează unificarea în acest caz special de liste?",
+            code: "?- [H|T] = [X|Y].",
+            options: [
+                { text: "Reușește, legând H = X și T = Y.", correct: true },
+                { text: "Eșuează deoarece nu conțin constante.", correct: false },
+                { text: "Apare o eroare de ciclu instanțial.", correct: false },
+                { text: "H preia valoarea [X].", correct: false }
+            ],
+            explanation: "Ambele structuri reprezintă șabloane generice de liste compuse din cap și coadă. Ele unifică perfect prin maparea directă a componentelor: H cu X și T cu Y."
+        },
+        {
+            level: "Mediu",
+            text: "Care este efectul predicatului 'fail' plasat în corpul acestei reguli?",
+            code: "p :- write('A'), fail, write('B').\n\n?- p.",
+            options: [
+                { text: "Afișează 'A' și apoi eșuează (returnează false).", correct: true },
+                { text: "Afișează 'A' și apoi 'B'.", correct: false },
+                { text: "Eșuează direct fără să afișeze nimic.", correct: false },
+                { text: "Afișează 'B' la backtracking.", correct: false }
+            ],
+            explanation: "Se execută write('A'), apoi predicatul fail oprește execuția înainte de a ajunge la write('B'), provocând eșecul imediat al întregii ramuri curent evaluate."
+        },
+
+        // ==================== NIVEL: DIFICIL (41-60) ====================
+        {
+            level: "Dificil",
+            text: "Următorul cod procesează fapte de tipul cnt(tara, continent) pentru a genera liste grupate. Ce lipsește în a doua clauză pentru a declanșa colectarea?",
+            code: "countries_continent(_) :- \n    cnt(_, C), not(seen(C)), assert(seen(C)),\n    findall(CC, cnt(CC, C), LC), assert(cc(LC)), fail.\ncountries_continent(L) :- \n    __________.\n\ng([H|R]) :- retract(cc(H)), g(R).\ng([]).",
+            options: [
+                { text: "true", correct: false },
+                { text: "g(L)", correct: true },
+                { text: "retract(cc(L))", correct: false },
+                { text: "fail", correct: false }
+            ],
+            explanation: "A doua clauză countries_continent(L) rulează doar după ce prima clauză a eșuat prin fail (grupând toate datele în fapte cc/1). Pentru a le colecta în lista finală L, trebuie apelat predicatul auxiliar g(L)."
+        },
+        {
+            level: "Dificil",
+            text: "Ce se întâmplă la rularea apelului ?- path(a, c, Drum). pe un graf ce conține un ciclu (edge(a,b). edge(b,a).), unde 'c' este un nod izolat?",
+            code: "path(X, Y, [X, Y]) :- edge(X, Y).\npath(X, Y, [X|Top]) :-\n    edge(X, Z),\n    path(Z, Y, Top).",
+            options: [
+                { text: "Returnează false instant.", correct: false },
+                { text: "Intră în buclă infinită (Stack Overflow) deoarece nu memorează nodurile vizitate.", correct: true },
+                { text: "Funcționează corect datorită backtracking-ului nativ.", correct: false }
+            ],
+            explanation: "Fără un acumulator (o listă de noduri vizitate precum 'Seen'), Prolog va pendula la nesfârșit între muchiile edge(a,b) și edge(b,a) în încercarea de a găsi o cale spre 'c'."
+        },
+        {
+            level: "Dificil",
+            text: "Analizați această secvență de sortare tip QuickSort. Unde este localizată eroarea fatală de asamblare?",
+            code: "qsort([], []).\nqsort([H|T], Rez) :-\n    partition(H, T, Mici, Mari),\n    qsort(Mici, MiciSort),\n    qsort(Mari, MariSort),\n    append(MariSort, [H|MiciSort], Rez).",
+            options: [
+                { text: "Codul este corect scris.", correct: false },
+                { text: "În apelul append, lista MariSort este pusă înaintea elementului Pivot și a listei MiciSort, sortând descrescător în loc de crescător.", correct: true },
+                { text: "Predicatul partition trebuia plasat la final.", correct: false },
+                { text: "qsort pe lista vidă trebuia să returneze un atom.", correct: false }
+            ],
+            explanation: "Modul corect de asamblare a elementelor într-un QuickSort crescător este append(MiciSort, [H|MariSort], Rez). Punând MariSort în față, elementele mai mari vor apărea primele în rezultat."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va stoca baza de date în urma execuției succesive a apelului dublu de mai jos?",
+            code: ":- dynamic f/1.\nsalveaza(X) :- retract(f(X)), !.\nsalveaza(X) :- assert(f(X)).\n\n?- salveaza(5), salveaza(5).",
+            options: [
+                { text: "Baza de date va fi goală în privința faptului f(5).", correct: true },
+                { text: "Baza de date va conține f(5) de două ori.", correct: false },
+                { text: "Baza de date va conține o singură instanță f(5).", correct: false },
+                { text: "Eroare la al doilea apel.", correct: false }
+            ],
+            explanation: "La primul apel, retract(f(5)) eșuează (f(5) nu există), se trece la clauza 2 și se adaugă f(5). La al doilea apel, retract(f(5)) reușește și elimină faptul adăugat anterior, executând apoi tăierea. Astfel, faptul este șters definitiv."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va returna acest predicat complex care folosește tăierea și negarea combinat?",
+            code: "gloria(X) :- \+ (\+ (X = 1)).\n\n?- gloria(Val).",
+            options: [
+                { text: "Val = 1.", correct: false },
+                { text: "true, dar Val rămâne variabilă liberă.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare de instanțiere.", correct: false }
+            ],
+            explanation: "Dubla negare \\+ (\\+ (...)) verifică doar dacă scopul poate avea succes fără a păstra efectiv legăturile variabilelor create în interiorul ei. Succesul se întoarce ca true, dar Val redevine liberă în afara negării."
+        },
+        {
+            level: "Dificil",
+            text: "Care este problema structurală a acestei implementări de inversare cu listă diferență?",
+            code: "rev_dl([], X-X).\nrev_dl([H|T], B-E) :-\n    rev_dl(T, B-[H|E]).",
+            options: [
+                { text: "A doua regulă are o structură invalidă de argument (2 în loc de 3 sau potrivire greșită a operatorului minus).", correct: true },
+                { text: "Este corectă.", correct: false },
+                { text: "Lipsește un apel de append.", correct: false },
+                { text: "Nu se oprește la lista vidă.", correct: false }
+            ],
+            explanation: "Sintaxa B-[H|E] pasată ca un singur argument în apelul recursiv contravine șablonului de doi parametri sau structurii corecte a perechii. Corect era rev_dl(T, B, E1) sau utilizarea unei reprezentări clare cu 2 argumente separate."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va genera execuția următorului bloc de cod la interogare?",
+            code: "bucla(X) :- X > 3, !.\nbucla(X) :- write(X), Next is X + 1, bucla(Next).\n\n?- bucla(1).",
+            options: [
+                { text: "Afișează 123 și întoarce true.", correct: true },
+                { text: "Afișează 1234 și întoarce true.", correct: false },
+                { text: "Intră în buclă infinită.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Afișează 1, apelează bucla(2); afișează 2, apelează bucla(3); afișează 3, apelează bucla(4). În bucla(4), prima clauză (4>3) devine adevărată și se oprește prin tăiere întorcând succes."
+        },
+        {
+            level: "Dificil",
+            text: "Care este rezultatul unificării de mai jos care implică o structură ciclică (infinite term)?",
+            code: "?- X = f(X).",
+            options: [
+                { text: "Reușește în majoritatea sistemelor Prolog moderne, creând un termen ciclic.", correct: true },
+                { text: "Eșuează direct prin false.", correct: false },
+                { text: "Generează instant eroare de sintaxă.", correct: false },
+                { text: "X devine egal cu f().", correct: false }
+            ],
+            explanation: "Dacă nu se folosește explicit 'occurs check', Prolog omite verificarea de apartenență din motive de performanță și unifică cu succes structura, generând un graf ciclic infinit."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va produce apelul predicatului 'bagof/3' în absența operatorului de existență?",
+            code: "test_b(a, 1).\ntest_b(b, 2).\ntest_b(a, 3).\n\n?- bagof(V, test_b(K, V), Liste).",
+            options: [
+                { text: "Întoarce succes multiplu la backtracking: o dată Liste=[1,3] pentru K=a, și o dată Liste=[2] pentru K=b.", correct: true },
+                { text: "Liste = [1, 2, 3].", correct: false },
+                { text: "Liste = [1, 3].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Deoarece K nu este legat prin operatorul ^, bagof va grupa rezultatele separat pentru fiecare valoare unică a lui K întâlnită în timpul backtracking-ului."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va returna acest predicat ce folosește tehnica 'cut-fail' pentru a implementa diferențierea?",
+            code: "non_egal(X, X) :- !, fail.\non_egal(_, _).\n\n?- non_egal(5, 5).",
+            options: [
+                { text: "false.", correct: true },
+                { text: "true.", correct: false },
+                { text: "Eroare de execuție.", correct: false },
+                { text: "5 = 5.", correct: false }
+            ],
+            explanation: "Apelul unifică direct cu prima clauză non_egal(5, 5). Se rulează tăierea (!), izolând alternativa, urmată instantaneu de fail, ceea ce duce la eșecul total al interogării."
+        },
+        {
+            level: "Dificil",
+            text: "Următorul predicat vrea să verifice dacă o listă este sortată crescător. Ce defect ascuns are?",
+            code: "is_sorted([]) :- !.\nis_sorted([_]) :- !.\nis_sorted([H1, H2 | T]) :- H1 <= H2, is_sorted([H2 | T]).",
+            options: [
+                { text: "Operatorul de comparare trebuia să fie '=<' în loc de '<=', generând o eroare de sintaxă/operator.", correct: true },
+                { text: "Este implementat complet corect.", correct: false },
+                { text: "A treia clauză va genera o buclă infinită.", correct: false },
+                { text: "Nu acoperă cazul listelor cu un singur element.", correct: false }
+            ],
+            explanation: "În Prolog, operatorul pentru mai mic sau egal este '=<'. Scrierea lui sub forma '<=' va fi interpretată ca un functor necunoscut sau eroare de operator infixat."
+        },
+        {
+            level: "Dificil",
+            text: "Ce se întâmplă la rularea acestui cod conceput pentru eliminarea duplicatelor consecutive?",
+            code: "elim_dup([], []).\nelim_dup([X,X|T], R) :- !, elim_dup([X|T], R).\nelim_dup([H|T], [H|R]) :- elim_dup(T, R).\n\n?- elim_dup([1, 1, 2, 2], L).",
+            options: [
+                { text: "L = [1, 2].", correct: true },
+                { text: "L = [1, 1, 2, 2].", correct: false },
+                { text: "L = [].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "A doua clauză detectează elementele identice consecutive, folosește tăierea pentru a elimina ramurile alternative și păstrează doar un singur exemplar în apelul recursiv următor."
+        },
+        {
+            level: "Dificil",
+            text: "Ce structură va genera acest apel recursiv ciudat bazat pe liste diferență?",
+            code: "f_dl(0, X-X) :- !.\nf_dl(N, [N|B]-E) :- N1 is N - 1, f_dl(N1, B-E).\n\n?- f_dl(2, Rez-[]).",
+            options: [
+                { text: "Rez = [2, 1].", correct: true },
+                { text: "Rez = [1, 2].", correct: false },
+                { text: "Rez = [0, 1, 2].", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Nivelul pornește de la 2: capul devine [2|B]. La pasul următor N devine 1, iar B se unifică cu [1|B1]. La 0 se unifică cu [], rezultând lista închisă [2, 1]."
+        },
+        {
+            level: "Dificil",
+            text: "Cum influențează ordinea clauzelor rezultatul predicatului în acest scenariu?",
+            code: "ancor(X) :- ancor(X).\nancor(1).\n\n?- ancor(1).",
+            options: [
+                { text: "Intră în buclă infinită (Stack Overflow) fără să verifice clauza a doua.", correct: true },
+                { text: "Returnează true instant.", correct: false },
+                { text: "false.", correct: false },
+                { text: "Returnează true la backtracking.", correct: false }
+            ],
+            explanation: "Prolog selectează clauzele în ordinea apariției lor. Deoarece prima regulă definește o recursivitate la stânga pură fără condiție de oprire, apelul se va bloca în stivă."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va returna interogarea următoare în variabila S?",
+            code: "?- findall(X, (member(X, [1, 2]), retract(f(X))), S).",
+            options: [
+                { text: "Eșuează sau colectează în funcție de starea externă a bazei de date dinamice pentru f/1.", correct: true },
+                { text: "S = [1, 2].", correct: false },
+                { text: "S = [].", correct: false },
+                { text: "Eroare fatală.", correct: false }
+            ],
+            explanation: "Funcționarea lui retract depinde strict de existența prealabilă a faptelor în baza de date. Dacă faptele f(1) sau f(2) nu sunt declarate dinamice și prezente, retract va eșua pe acele elemente."
+        },
+        {
+            level: "Dificil",
+            text: "Care este comportamentul acestei scheme de interogare?",
+            code: "m(X) :- \+ \+ (X = a).\n\n?- m(b).",
+            options: [
+                { text: "false.", correct: true },
+                { text: "true.", correct: false },
+                { text: "X = a.", correct: false },
+                { text: "Eroare.", correct: false }
+            ],
+            explanation: "Apelul m(b) unifică X cu b. În interior se evaluează \\+ \\+ (b = a). Întrucât b=a eșuează, prima negare transformă în true, iar a doua negare re-transformă în false."
+        },
+        {
+            level: "Dificil",
+            text: "Următorul cod dorește să insereze un element într-o listă pe o poziție dată. Ce eroare are?",
+            code: "ins(X, 1, L, [X|L]) :- !.\nins(X, P, [H|T], [H|R]) :- P1 is P - 1, ins(X, P1, T, R).",
+            options: [
+                { text: "Este complet corect pentru indici pozitivi.", correct: true },
+                { text: "Eșuează deoarece P1 is P - 1 trebuie rulat la sfârșit.", correct: false },
+                { text: "Lista finală va fi returnată inversată.", correct: false },
+                { text: "Nu poate rula pe liste care conțin atomi.", correct: false }
+            ],
+            explanation: "Codul este corect implementat: păstrează elementele până la poziția dorită, iar când P atinge 1, inserează elementul X în capul listei rămase, oprind alte căutări prin tăiere."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va produce următorul apel bazat pe o listă diferență?",
+            code: "?- X-Y = [1,2,3]-[3], X = [1,2|Y].",
+            options: [
+                { text: "true, confirmând structura potrivită a listei diferență.", correct: true },
+                { text: "false.", correct: false },
+                { text: "Eroare structurală.", correct: false },
+                { text: "Y = [].", correct: false }
+            ],
+            explanation: "Unificarea inițială setează X = [1,2,3] și Y = [3]. A doua verificare testează dacă [1,2,3] este identic cu [1,2 | [3]], ceea ce este perfect adevărat."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va returna acest apel recursiv ce combină liste și operații matematice inline?",
+            code: "p([], 1).\np([H|T], R) :- p(T, R1), R is R1 * H.\n\n?- p([2, 3, 4], X).",
+            options: [
+                { text: "X = 24.", correct: true },
+                { text: "X = 9.", correct: false },
+                { text: "X = 1.", correct: false },
+                { text: "false.", correct: false }
+            ],
+            explanation: "Predicatul calculează produsul elementelor listei. Procesul înmulțește elementele în mod recursiv de la coadă la capăt: 1 * 4 * 3 * 2 = 24."
+        },
+        {
+            level: "Dificil",
+            text: "Ce va face acest predicat la evaluare?",
+            code: "test_cut :- write('1'), (!, fail ; write('2')).\n\n?- test_cut.",
+            options: [
+                { text: "Afișează '1' și eșuează (returnează false) fără a afișa '2'.", correct: true },
+                { text: "Afișează '1' și '2'.", correct: false },
+                { text: "Afișează doar '2'.", correct: false },
+                { text: "false direct.", correct: false }
+            ],
+            explanation: "Afișează '1'. În paranteză, rulează mai întâi ramura stângă a disjuncției: tăierea (!) urmată de fail. Tăierea blochează posibilitatea de a face backtracking în disjuncție spre write('2'), ducând la eșecul controlat direct."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timeLeft = 45 * 60; // 45 minute pentru 60 de întrebări
+    let timerInterval;
+    let userSelections = []; // Reține răspunsurile utilizatorului pentru revizuirea finală
+
+    // function startTimer() {
+    //     timerInterval = setInterval(() => {
+    //         if (timeLeft <= 0) {
+    //             clearInterval(timerInterval);
+    //             endQuiz();
+    //             return;
+    //         }
+    //         timeLeft--;
+    //         const mins = Math.floor(timeLeft / 60);
+    //         const secs = timeLeft % 60;
+    //         document.getElementById('timer-display').innerText = 
+    //             `Time left 0:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    //     }, 1000);
+    // }
+
+    function loadQuestion() {
+        const q = questions[currentQuestionIndex];
+        
+        // Actualizare meta date și stil badge nivel
+        document.getElementById('question-info').innerText = `Întrebarea ${currentQuestionIndex + 1} din ${questions.length}`;
+        const badge = document.getElementById('level-indicator');
+        badge.innerText = q.level.toUpperCase();
+        badge.className = "level-badge";
+        if(q.level === "Ușor") badge.classList.add("level-usor");
+        else if(q.level === "Mediu") badge.classList.add("level-mediu");
+        else badge.classList.add("level-dificil");
+
+        document.getElementById('question-text').innerText = q.text;
+        document.getElementById('code-display').innerText = q.code;
+        
+        const optionsContainer = document.getElementById('options-display');
+        optionsContainer.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            const label = document.createElement('label');
+            label.className = 'option-label';
+            label.innerHTML = `<input type="radio" name="answer" value="${index}"> <span>${opt.text}</span>`;
+            optionsContainer.appendChild(label);
+        });
+
+        document.getElementById('feedback-display').style.display = 'none';
+        document.getElementById('submit-btn').style.display = 'block';
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function checkAnswer() {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) {
+            alert("Vă rugăm să selectați un răspuns!");
+            return;
+        }
+
+        const q = questions[currentQuestionIndex];
+        const selectedIndex = parseInt(selected.value);
+        const isCorrect = q.options[selectedIndex].correct;
+        const feedback = document.getElementById('feedback-display');
+
+        document.getElementById('submit-btn').disabled = true;
+
+        // Salvare selecție pentru analiza finală
+        userSelections.push({
+            questionIndex: currentQuestionIndex,
+            selectedIdx: selectedIndex,
+            correctIdx: q.options.findIndex(o => o.correct)
+        });
+
+        if (isCorrect) {
+            score++;
+            feedback.className = "feedback correct";
+            feedback.innerHTML = `<strong>Corect!</strong><br>${q.explanation}`;
+        } else {
+            feedback.className = "feedback wrong";
+            feedback.innerHTML = `<strong>Incorect.</strong><br>${q.explanation}`;
+        }
+
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            endQuiz();
+        }
+    }
+
+    function endQuiz() {
+        // clearInterval(timerInterval);
+        document.getElementById('quiz-game').style.display = 'none';
+        document.getElementById('score-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+        
+        const msg = document.getElementById('score-message');
+        if (score === questions.length) {
+            msg.innerText = "Senzațional! Ai obținut punctaj maxim. Ești pregătit complet pentru examen!";
+        } else if (score >= questions.length * 0.7) {
+            msg.innerText = "Foarte bine! Ai cunoștințe solide de Prolog. Verifică mai jos zonele unde ai greșit.";
+        } else if (score >= questions.length * 0.5) {
+            msg.innerText = "Ai trecut la limită. Îți recomandăm să parcurgi cu atenție explicațiile răspunsurilor greșite.";
+        } else {
+            msg.innerText = "Scor insuficient pentru promovare. Analizează cu atenție secțiunea de mai jos și reia conceptele deficitare.";
+        }
+
+        // Generare raport greșeli
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = '';
+
+        const wrongAnswers = userSelections.filter(s => s.selectedIdx !== s.correctIdx);
+
+        if (wrongAnswers.length === 0) {
+            reviewList.innerHTML = '<p style="color: var(--success-color); font-weight: bold;">Felicitări! Nu ai nicio greșeală.</p>';
+        } else {
+            wrongAnswers.forEach(item => {
+                const q = questions[item.questionIndex];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'review-item';
+                itemDiv.innerHTML = `
+                    <h4>Întrebarea ${item.questionIndex + 1} (${q.level}) - ${q.text}</h4>
+                    <div class="code-block" style="font-size:0.85em; padding:10px;">${q.code}</div>
+                    <div class="review-answers">
+                        <p class="user-ans">Răspunsul tău: ${q.options[item.selectedIdx].text}</p>
+                        <p class="corr-ans">Răspunsul corect: ${q.options[item.correctIdx].text}</p>
+                    </div>
+                    <p style="margin-top:10px; font-size:0.95em;"><strong>Explicație:</strong> ${q.explanation}</p>
+                `;
+                reviewList.appendChild(itemDiv);
+            });
+        }
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        //timeLeft = 45 * 60;
+        userSelections = [];
+        document.getElementById('quiz-game').style.display = 'block';
+        document.getElementById('score-screen').style.display = 'none';
+        loadQuestion();
+        //clearInterval(timerInterval);
+        //startTimer();
+    }
+
+    window.onload = () => {
+        loadQuestion();
+        //startTimer();
+    };
+</script>
+</body>
+</html>
